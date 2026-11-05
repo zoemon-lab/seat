@@ -1,0 +1,21 @@
+# main の内容を gh-pages に写して公開する。
+# GitHubの自動処理の権限で書き込むので、公開記録に個人のアカウント名が付かない。
+name: publish
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Copy main to gh-pages
+        run: |
+          git config user.name zoemon-lab
+          git config user.email zoemon-lab@users.noreply.github.com
+          git switch --orphan gh-pages-new
+          git checkout main -- index.html manifest.json sw.js icon-192.png icon-512.png apple-touch-icon.png
+          git commit -q -m "座席表DX を公開"
+          git push -f origin gh-pages-new:gh-pages
