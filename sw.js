@@ -1,5 +1,5 @@
 // オフラインでも動くようにアプリ本体をキャッシュ（更新時は CACHE の番号を上げる）
-const CACHE='seatmaker-v7';
+const CACHE='seatmaker-v8';
 const ASSETS=['./','./index.html','./manifest.json','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting()});
 // 同じドメインに別のアプリがあっても消さないよう、自分のキャッシュだけ片づける
