@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; manifest-src 'self'; worker-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
-<title>座席表DX</title>
+<title>せきがえプラス</title>
 <meta name="description" content="名簿を入れるだけ。席替え、ペア・グループ作り、トークテーマ500個まで。先生のための無料アプリ。データは端末の中だけに保存されます。">
 <meta property="og:type" content="website">
-<meta property="og:title" content="座席表DX">
+<meta property="og:title" content="せきがえプラス">
 <meta property="og:description" content="名簿を入れるだけ。席替え、ペア・グループ作り、トークテーマ500個まで。先生のための無料アプリ。">
 <meta property="og:url" content="https://zoemon-lab.github.io/seat/">
 <meta property="og:image" content="https://zoemon-lab.github.io/seat/icon-512.png">
@@ -15,7 +15,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
-<meta name="apple-mobile-web-app-title" content="座席表DX">
+<meta name="apple-mobile-web-app-title" content="せきがえプラス">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -540,7 +540,7 @@ header{--ui-label:#f5f5f7;--ui-label2:#a1a1a6;--ui-fill:rgba(255,255,255,.14);--
 <body>
 <noscript><p style="padding:24px">このアプリを使うには、ブラウザのJavaScriptを有効にしてください。</p></noscript>
 <header><div class="wrap">
-  <div class="logo"><i><b></b><b></b><b></b><b></b><b></b><b></b></i>座席表DX</div>
+  <div class="logo"><i><b></b><b></b><b></b><b></b><b></b><b></b></i>せきがえプラス</div>
   <div class="clsbox">
     <select id="clsSel" aria-label="クラス"></select>
     <button class="iconbtn" id="addCls" title="クラスを追加" aria-label="クラスを追加">＋</button>
@@ -847,7 +847,7 @@ header{--ui-label:#f5f5f7;--ui-label2:#a1a1a6;--ui-fill:rgba(255,255,255,.14);--
       <p class="muted">先生のための無料アプリです。登録やログインは不要で、広告もありません。一度開けば、インターネットがなくても使えます。</p>
       <p class="muted">席替えや組み合わせの結果は、使う前に先生ご自身で確認してください。個人が作成したアプリのため、動作やデータの保存を保証するものではありません。大切な名簿は定期的にバックアップしてください。</p>
     </div>
-    <p class="foot">座席表DX v2.5</p>
+    <p class="foot">せきがえプラス v2.6</p>
   </section>
 </main>
 
@@ -860,7 +860,7 @@ header{--ui-label:#f5f5f7;--ui-label2:#a1a1a6;--ui-fill:rgba(255,255,255,.14);--
 </nav>
 
 <div class="ov" id="welcomeOv"><div class="sheet">
-  <h3>座席表DXへようこそ<button data-close aria-label="閉じる">✕</button></h3>
+  <h3>せきがえプラスへようこそ<button data-close aria-label="閉じる">✕</button></h3>
   <div class="wsteps">
     <div class="wstep"><b>1</b><div>名簿を入れる<small>Excelからコピーして貼り付けるだけ。</small></div></div>
     <div class="wstep"><b>2</b><div>「席替えスタート」を押す<small>隣にしたくない組み合わせや前列の指定も守ります。</small></div></div>
@@ -1664,7 +1664,7 @@ $('#renameCls').onclick=()=>{const c=C(),n=prompt('クラスの名前',c.name);i
 $('#dupCls').onclick=()=>{const c=JSON.parse(JSON.stringify(C()));c.id=uid();c.name+='（コピー）';S.classes.push(c);S.cur=c.id;save();renderAll();toast('複製しました')};
 $('#delCls').onclick=()=>{const c=C();if(!confirm(`「${c.name}」を削除しますか？元に戻せません。`))return;
   S.classes=S.classes.filter(x=>x!==c);if(!S.classes.length)S.classes.push(newClass('1年1組',false));S.cur=S.classes[0].id;save();renderAll()};
-$('#exportData').onclick=()=>{S.backupAt=Date.now();const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});downloadBlob(blob,`座席表DXバックアップ_${dotDate(Date.now())}.json`);save();renderSeats();renderSettings()};
+$('#exportData').onclick=()=>{S.backupAt=Date.now();const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});downloadBlob(blob,`せきがえプラスバックアップ_${dotDate(Date.now())}.json`);save();renderSeats();renderSettings()};
 // 読み込むファイルの形を確かめる（画面に出す部品のIDにそのまま使うものがあるため）
 function validBackup(d){const id=v=>typeof v==='string'&&/^[\w-]+$/.test(v);
   return d&&Array.isArray(d.classes)&&d.classes.length>0&&d.classes.every(c=>c&&id(c.id)&&Array.isArray(c.students)&&c.students.every(s=>s&&id(s.id)&&['m','f','',undefined].includes(s.g)&&['near','first','',true,false,undefined].includes(s.front))
@@ -2039,7 +2039,7 @@ function drawChart(){
   }
   y+=-gp;
   if(tv){drawBoard(y+30);y+=boardH}
-  x.fillStyle=t.sub;x.font=`700 24px ${font}`;x.globalAlpha=.85;x.fillText('座席表DX で作成',W/2,Math.min(H-40,y+footH*.6));x.globalAlpha=1;
+  x.fillStyle=t.sub;x.font=`700 24px ${font}`;x.globalAlpha=.85;x.fillText('せきがえプラス で作成',W/2,Math.min(H-40,y+footH*.6));x.globalAlpha=1;
   return cv;
 }
 function fitText(x,txt,cx,cy,maxW,size,wt,font){let s=size;x.font=`${wt} ${s}px ${font}`;while(x.measureText(txt).width>maxW&&s>8){s-=1;x.font=`${wt} ${s}px ${font}`}x.fillText(txt,cx,cy)}

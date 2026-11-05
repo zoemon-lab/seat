@@ -17,5 +17,5 @@ jobs:
           git config user.email zoemon-lab@users.noreply.github.com
           git switch --orphan gh-pages-new
           git checkout main -- index.html manifest.json sw.js icon-192.png icon-512.png apple-touch-icon.png
-          git commit -q -m "座席表DX を公開"
+          git commit -q -m "せきがえプラス を公開"
           git push -f origin gh-pages-new:gh-pages
