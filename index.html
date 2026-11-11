@@ -603,12 +603,12 @@ header{--ui-label:#f5f5f7;--ui-label2:#a1a1a6;--ui-fill:rgba(255,255,255,.14);--
           <button class="btn sub" data-bulk="all">すべて選ぶ</button>
           <button class="btn sub" data-bulk="m">男</button>
           <button class="btn sub" data-bulk="f">女</button>
-          <button class="btn sub" data-bulk="near">前</button>
+          <button class="btn sub" data-bulk="two">前から2行以内</button><button class="btn sub" data-bulk="near">前（設定した範囲）</button>
           <button class="btn sub" data-bulk="first">最前</button>
           <button class="btn sub" data-bulk="clear">前を解除</button>
           <button class="btn danger" data-bulk="del">削除</button>
         </div>
-        <p class="muted" style="margin-bottom:0">名前の欄で Enter を押すと下の人へ移動します。Excelの列をコピーして名前やふりがなの欄に貼り付けると、下へ順に入ります。「前」は押すたびに「前◯列以内」→「最前列」→ なし と切り替わります。</p>
+        <p class="muted" style="margin-bottom:0">名前の欄で Enter を押すと下の人へ移動します。Excelの列をコピーして名前やふりがなの欄に貼り付けると、下へ順に入ります。「前」は押すたびに「前から2行以内」→「最前列」→「前（設定した範囲）」→ なし と切り替わります。</p>
       </div>
     </div>
     <div data-rpane="paste">
@@ -797,7 +797,7 @@ header{--ui-label:#f5f5f7;--ui-label2:#a1a1a6;--ui-fill:rgba(255,255,255,.14);--
       <div class="set"><label>横の列数</label><div class="stepper" data-k="cols"><button data-d="-1">−</button><b></b><button data-d="1">＋</button></div></div>
       <div class="set"><label>縦の列数</label><div class="stepper" data-k="rows"><button data-d="-1">−</button><b></b><button data-d="1">＋</button></div></div>
       <div class="set"><label>2人机<small>2列ごとに通路をあけます</small></label><label class="sw"><input type="checkbox" id="optPair"><span></span></label></div>
-      <div class="set"><label>「前」とみなす列<small>「前◯列以内」の生徒をここまでに座らせます</small></label><div class="stepper" data-k="frontRows"><button data-d="-1">−</button><b></b><button data-d="1">＋</button></div></div>
+      <div class="set"><label>「前」とみなす行数<small>「前◯行以内」の生徒をここまでに座らせます</small></label><div class="stepper" data-k="frontRows"><button data-d="-1">−</button><b></b><button data-d="1">＋</button></div></div>
       <div class="set"><label>班（グループ）<small>近くの席をまとめて班にし、番号と色で表示します</small></label><div class="seg" id="grpSeg"><button data-v="0">なし</button><button data-v="4">4人</button><button data-v="6">6人</button></div></div>
     </div>
     <div class="card">
@@ -1047,7 +1047,7 @@ function adjCounts(list){const m=new Map();for(const e of list){const k=pkey(e.a
 function genderTarget(c,i){const [r,k]=RC(c,i);
   switch(c.opts.gp){case 'checker':return (r+k)%2;case 'col':return k%2;case 'row':return r%2;case 'fb':return r<c.rows/2?0:1;case 'lr':return k<c.cols/2?0:1}
   return -1}
-function frontOK(c,s,i){const r=RC(c,i)[0];return s.front==='first'?r===0:s.front==='near'?r<c.frontRows:true}
+function frontOK(c,s,i){const r=RC(c,i)[0];return s.front==='first'?r===0:s.front==='two'?r<2:s.front==='near'?r<c.frontRows:true}
 function grpOf(c,i){const [r,k]=RC(c,i),gw=c.group===6?3:2;return (r>>1)*Math.ceil(c.cols/gw)+(k/gw|0)+1}
 function newRound(c){c.seq=Math.max(c.seq||0,c.round||0)+1;c.round=c.seq;c.confirmedRound=null}
 function pushHist(c){c.history.push({date:c.date,seats:c.seats.slice(),round:c.round,conf:c.confirmedRound===c.round});if(c.history.length>20)c.history.shift()}
@@ -1074,7 +1074,7 @@ function computeShuffle(c){
     let p=0,mA=0,mB=0;const pos={};
     for(let i=0;i<n;i++){const id=arr[i];if(!id){if(!off.has(i))p+=(c.rows-1-(i/cols|0))*3*K;continue}pos[id]=i;const s=info[id],r=i/cols|0,k=i%cols;
       if(s.front==='first'&&r>0)p+=(60+r*10)*K;
-      else if(s.front==='near'&&r>=c.frontRows)p+=(60+(r-c.frontRows)*10)*K;
+      else if((s.front==='two'||s.front==='near')&&r>=(s.front==='two'?2:c.frontRows))p+=(60+(r-(s.front==='two'?2:c.frontRows))*10)*K;
       if(useAv&&prevPos[id]===i)p+=8;
       // 男女パターンは「0=男」「0=女」の両方で数えて、合う方を使う
       if(useG&&s.g&&tg[i]>=0){if(s.g!==(tg[i]===0?'m':'f'))mA++;else mB++}
@@ -1166,7 +1166,7 @@ function verify(c){
   const nm=id=>stuById(c,id)?.name||'?',out=[],has=id=>pos[id]!=null;
   const fr=c.students.filter(s=>s.front&&has(s.id));
   if(fr.length){const bad=fr.filter(s=>!frontOK(c,s,pos[s.id]));
-    out.push({t:'前列指定',ok:!bad.length,d:`${fr.length-bad.length} / ${fr.length}人 OK（最前列・前${c.frontRows}列以内）`,bad:bad.map(s=>s.name)})}
+    out.push({t:'前列指定',ok:!bad.length,d:`${fr.length-bad.length} / ${fr.length}人 OK（最前列・前から2行以内・前${c.frontRows}行以内）`,bad:bad.map(s=>s.name)})}
   if(c.ng.length){const bad=c.ng.filter(([a,b])=>has(a)&&has(b)&&near8(c,pos[a],pos[b]));
     out.push({t:'隣にしない',ok:!bad.length,d:`${c.ng.length-bad.length} / ${c.ng.length}組 OK`,bad:bad.map(([a,b])=>`${nm(a)} と ${nm(b)}`)})}
   if(c.together.length){const bad=c.together.filter(([a,b])=>!(has(a)&&has(b)&&besides(c,pos[a],pos[b])));
@@ -1252,7 +1252,7 @@ function renderClsSel(){
   $('#clsSel').innerHTML=S.classes.map(c=>`<option value="${c.id}"${c.id===S.cur?' selected':''}>${esc(c.name)}</option>`).join('');
 }
 let rPane='list',rSelecting=false;const rSel=new Set(),rv={q:'',filter:'all',sort:'num'};
-const frontLbl=(c,s)=>s.front==='first'?'最前列':s.front==='near'?`前${c.frontRows}列`:'前';
+const frontLbl=(c,s)=>s.front==='first'?'最前列':s.front==='two'?'前から2行以内':s.front==='near'?`前${c.frontRows}行以内`:'前';
 function rosterOrder(c){
   const num=s=>+s.num||9999,a=c.students.slice();
   if(rv.sort==='kana')a.sort((x,y)=>(x.kana||x.name).localeCompare(y.kana||y.name,'ja'));
@@ -1275,7 +1275,7 @@ function renderRosterList(){
     <input class="name" value="${esc(s.name)}" data-f="name" aria-label="名前" enterkeyhint="next">
     <input class="kana" value="${esc(s.kana||'')}" data-f="kana" placeholder="ふりがな" aria-label="ふりがな" enterkeyhint="next">
     <div class="rsw"><div class="gsw"><button class="m${s.g==='m'?' on':''}" data-f="m" aria-label="男">男</button><button class="f${s.g==='f'?' on':''}" data-f="f" aria-label="女">女</button></div>
-    <button class="tg ${s.front==='first'?'on2':s.front==='near'?'on':''}" data-f="front">${frontLbl(c,s)}</button></div>
+    <button class="tg ${s.front==='first'?'on2':(s.front==='near'||s.front==='two')?'on':''}" data-f="front">${frontLbl(c,s)}</button></div>
     <button class="x del-x" data-f="del" aria-label="${esc(s.name)}を削除">✕</button></div>`).join('')||`<p class="muted">${c.students.length?'当てはまる生徒がいません。':'まだ生徒がいません。上の欄に名前を入れるか、「まとめて入力」から貼り付けてください。'}</p>`;
   $('#rBar').hidden=!rSelecting;$('#rBarInfo').textContent=`${rSel.size}人を選択中`;
 }
@@ -1509,6 +1509,7 @@ function parseLines(txt){
       if(/^(男|男子|m|M|♂|boy)$/.test(t)){g='m';return false}
       if(/^(女|女子|f|F|♀|girl)$/.test(t)){g='f';return false}
       if(/^(最前|最前列|◎)$/.test(t)){front='first';return false}
+      if(/^(前から2行以内|前2行|前2列|2行以内)$/.test(t)){front='two';return false}
       if(/^(前|★|☆|\*)$/.test(t)){front='near';return false}
       return true});
     // 漢字の名前のあとに続くかな（ひらがな・カタカナ）はふりがなとして扱う
@@ -1585,7 +1586,7 @@ $('#stuList').addEventListener('click',e=>{
   const b=e.target.closest('button');if(!b)return;const row=b.closest('.stu'),c=C(),s=stuById(c,row.dataset.id),f=b.dataset.f;
   if(f==='ck'){rSel.has(s.id)?rSel.delete(s.id):rSel.add(s.id);return renderRosterList()}
   if(f==='m'||f==='f')s.g=s.g===f?'':f;
-  if(f==='front')s.front=s.front===''?'near':s.front==='near'?'first':'';
+  if(f==='front')s.front=s.front===''?'two':s.front==='two'?'first':s.front==='first'?'near':'';
   if(f==='del'){const snap=rosterSnap(c);c.students=c.students.filter(x=>x!==s);rSel.delete(s.id);afterRoster();return offerUndo(c,snap,`${s.name} さんを削除しました`)}
   c.sample=false;save();renderRosterList();renderSeats();
 });
@@ -1615,7 +1616,7 @@ $('#csvFile').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(
   t=t.replace(/^\uFEFF/,'').split(/\r?\n/).filter(l=>l.trim()&&!/^["']?(番号|名前|氏名)/.test(l.trim())).map(l=>l.replace(/"/g,'')).join('\n');
   $('#bulk').value=t;$('#bulk').focus();toast('内容を確認して、ボタンを押してください')};
 $('#csvOut').onclick=()=>{const c=C();if(!c.students.length)return toast('名簿がありません');const q=v=>`"${String(v??'').replace(/"/g,'""')}"`;
-  const rows=[['番号','名前','ふりがな','性別','前列'],...rosterOrder(c).map(s=>[s.num,s.name,s.kana,s.g==='m'?'男':s.g==='f'?'女':'',s.front==='first'?'最前':s.front==='near'?'前':''])];
+  const rows=[['番号','名前','ふりがな','性別','前列'],...rosterOrder(c).map(s=>[s.num,s.name,s.kana,s.g==='m'?'男':s.g==='f'?'女':'',s.front==='first'?'最前':s.front==='two'?'前から2行以内':s.front==='near'?'前':''])];
   downloadBlob(new Blob(['\uFEFF'+rows.map(r=>r.map(q).join(',')).join('\r\n')],{type:'text/csv'}),`名簿_${c.name}_${dotDate(Date.now())}.csv`)};
 // list と other（反対の条件）を見て、2人のペアを追加する
 function addPair(list,other,a,b,otherName){
@@ -1667,7 +1668,7 @@ $('#delCls').onclick=()=>{const c=C();if(!confirm(`「${c.name}」を削除し�
 $('#exportData').onclick=()=>{S.backupAt=Date.now();const blob=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});downloadBlob(blob,`せきがえプラスバックアップ_${dotDate(Date.now())}.json`);save();renderSeats();renderSettings()};
 // 読み込むファイルの形を確かめる（画面に出す部品のIDにそのまま使うものがあるため）
 function validBackup(d){const id=v=>typeof v==='string'&&/^[\w-]+$/.test(v);
-  return d&&Array.isArray(d.classes)&&d.classes.length>0&&d.classes.every(c=>c&&id(c.id)&&Array.isArray(c.students)&&c.students.every(s=>s&&id(s.id)&&['m','f','',undefined].includes(s.g)&&['near','first','',true,false,undefined].includes(s.front))
+  return d&&Array.isArray(d.classes)&&d.classes.length>0&&d.classes.every(c=>c&&id(c.id)&&Array.isArray(c.students)&&c.students.every(s=>s&&id(s.id)&&['m','f','',undefined].includes(s.g)&&['near','two','first','',true,false,undefined].includes(s.front))
     &&(c.gHist||[]).every(e=>id(e.r))&&(!c.groups||id(c.groups.r)))}
 $('#importData').onclick=()=>$('#importFile').click();
 $('#importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const d=JSON.parse(await f.text());if(!validBackup(d))throw 0;
